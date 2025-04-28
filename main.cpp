@@ -20,6 +20,7 @@ struct ExperimentData {
 
 // Function to calculate mean
 double calculateMean(const std::vector<double>& values) {
+    if (values.empty()) return 0.0;
     double sum = 0.0;
     for (double value : values) {
         sum += value;
@@ -270,55 +271,37 @@ void displayAnovaResults(const AnovaResult& result, const std::string& taskName)
     std::cout << std::endl;
 }
 
-// Function to read data from a CSV file
-std::vector<ExperimentData> readDataFromCSV(const std::string& filename) {
+// Function to create data from the screenshot table
+std::vector<ExperimentData> createDataFromTable() {
     std::vector<ExperimentData> data;
-    std::ifstream file(filename);
     
-    if (!file.is_open()) {
-        std::cerr << "Error: Unable to open file " << filename << std::endl;
-        return data;
-    }
+    // Add Control group (no filters, no tutorial)
+    data.push_back({1, 32.0, 5.3, 1.5, 11.5, false, false});
+    data.push_back({2, 35.1, 8.4, 1.9, 12.7, false, false});
+    data.push_back({3, 45.3, 5.5, 2.5, 14.4, false, false});
+    data.push_back({4, 25.1, 3.0, 5.2, 18.1, false, false});
+    data.push_back({5, 37.8, 6.7, 3.0, 15.2, false, false});
     
-    std::string line;
-    // Skip header line
-    std::getline(file, line);
+    // Add No filters with tutorial group
+    data.push_back({6, 20.1, 4.3, 3.3, 13.1, false, true});
+    data.push_back({7, 19.9, 3.1, 3.0, 11.3, false, true});
+    data.push_back({8, 15.4, 8.1, 2.4, 16.2, false, true});
+    data.push_back({9, 22.5, 5.3, 4.1, 14.2, false, true});
+    data.push_back({10, 16.5, 3.4, 2.8, 12.4, false, true});
     
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string token;
-        ExperimentData entry;
-        
-        // Parse subject number
-        std::getline(ss, token, ',');
-        entry.subject = std::stoi(token);
-        
-        // Parse create game time
-        std::getline(ss, token, ',');
-        entry.createGameTime = std::stod(token);
-        
-        // Parse find game time
-        std::getline(ss, token, ',');
-        entry.findGameTime = std::stod(token);
-        
-        // Parse RSVP time
-        std::getline(ss, token, ',');
-        entry.rsvpTime = std::stod(token);
-        
-        // Parse update profile time
-        std::getline(ss, token, ',');
-        entry.updateProfileTime = std::stod(token);
-        
-        // Parse filters on
-        std::getline(ss, token, ',');
-        entry.filtersOn = (token == "Yes" || token == "yes" || token == "TRUE" || token == "true" || token == "1");
-        
-        // Parse tutorial given
-        std::getline(ss, token, ',');
-        entry.tutorialGiven = (token == "Yes" || token == "yes" || token == "TRUE" || token == "true" || token == "1");
-        
-        data.push_back(entry);
-    }
+    // Add Filters without tutorial group
+    data.push_back({11, 20.3, 5.0, 2.8, 9.6, true, false});
+    data.push_back({12, 28.7, 11.2, 2.2, 10.4, true, false});
+    data.push_back({13, 35.2, 5.1, 2.1, 21.5, true, false});
+    data.push_back({14, 19.7, 4.41, 2.9, 15.7, true, false});
+    data.push_back({15, 24.5, 7.8, 3.4, 17.4, true, false});
+    
+    // Add Filters and tutorial group
+    data.push_back({16, 34.0, 10.1, 3.0, 15.1, true, true});
+    data.push_back({17, 24.5, 6.3, 2.0, 14.6, true, true});
+    data.push_back({18, 16.3, 4.8, 2.5, 13.1, true, true});
+    data.push_back({19, 27.7, 5.6, 1.9, 13.0, true, true});
+    data.push_back({20, 26.1, 6.2, 3.1, 11.9, true, true});
     
     return data;
 }
@@ -374,20 +357,16 @@ int main() {
     std::cout << "Two-Way ANOVA Analysis Program" << std::endl;
     std::cout << "==============================" << std::endl;
     
-    // Ask for the input file name
-    std::string filename;
-    std::cout << "Enter the name of the CSV file containing the data: ";
-    std::cin >> filename;
-    
-    // Read data from the CSV file
-    std::vector<ExperimentData> data = readDataFromCSV(filename);
+    // Use the data from the screenshot
+    std::vector<ExperimentData> data = createDataFromTable();
+    std::cout << "Using data from spreadsheet..." << std::endl;
     
     if (data.empty()) {
-        std::cerr << "No data was read from the file. Exiting program." << std::endl;
+        std::cerr << "No data was available for analysis. Exiting program." << std::endl;
         return 1;
     }
     
-    std::cout << "Successfully read " << data.size() << " data points from the file." << std::endl << std::endl;
+    std::cout << "Successfully processed " << data.size() << " data points." << std::endl << std::endl;
     
     // Perform analysis for each task
     for (int taskIndex = 1; taskIndex <= 4; taskIndex++) {
